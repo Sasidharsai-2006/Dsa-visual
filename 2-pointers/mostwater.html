@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container With Most Water</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 30px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .bar {
+            position: absolute;
+            bottom: 20px;
+            background: linear-gradient(to top, #4facfe 0%, #00f2fe 100%);
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .bar.selected {
+            border-color: #ff6b6b;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .water-area {
+            position: absolute;
+            bottom: 20px;
+            background: rgba(0, 191, 255, 0.3);
+            border: 2px solid #00bfff;
+            border-radius: 5px;
+            transition: all 0.5s ease;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .info-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        
+        .step-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .metric {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00f2fe;
+        }
+        
+        input[type="text"] {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 200px;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #00f2fe;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+        }
+        
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Container With Most Water</h1>
+        
+        <div class="input-group">
+            <label>Heights Array:</label>
+            <input type="text" id="heightInput" value="1,8,6,2,5,4,8,3,7" placeholder="Enter heights separated by commas">
+            <button onclick="updateArray()">Update Array</button>
+        </div>
+        
+        <div class="chart-container" id="chartContainer">
+            <!-- Bars and water will be drawn here -->
+        </div>
+        
+        <div class="controls">
+            <button onclick="reset()">Reset</button>
+            <button onclick="nextStep()" id="nextBtn">Next Step</button>
+            <button onclick="prevStep()" id="prevBtn" disabled>Previous Step</button>
+            <button onclick="autoSolve()" id="autoBtn">Auto Solve</button>
+        </div>
+        
+        <div class="info-panel">
+            <h2>Algorithm Status</h2>
+            <div class="step-info">
+                <div class="metric">
+                    <div class="metric-value" id="leftPointer">0</div>
+                    <div>Left Pointer</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="rightPointer">8</div>
+                    <div>Right Pointer</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="currentArea">0</div>
+                    <div>Current Area</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="maxArea">0</div>
+                    <div>Max Area</div>
+                </div>
+            </div>
+            <div id="stepDescription">Click 'Next Step' to start the algorithm visualization</div>
+        </div>
+    </div>
+
+    <script>
+        let heights = [1, 8, 6, 2, 5, 4, 8, 3, 7];
+        let left = 0;
+        let right = heights.length - 1;
+        let maxWater = 0;
+        let step = 0;
+        let isRunning = false;
+        
+        function updateArray() {
+            const input = document.getElementById('heightInput').value;
+            const newHeights = input.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+            if (newHeights.length < 2) {
+                alert('Please enter at least 2 valid numbers');
+                return;
+            }
+            heights = newHeights;
+            reset();
+        }
+        
+        function drawChart() {
+            const container = document.getElementById('chartContainer');
+            container.innerHTML = '';
+            
+            const maxHeight = Math.max(...heights);
+            const barWidth = Math.min(60, (container.clientWidth - 40) / heights.length);
+            const chartHeight = container.clientHeight - 40;
+            
+            // Draw bars
+            heights.forEach((height, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                if (index === left || index === right) {
+                    bar.classList.add('selected');
+                }
+                
+                const barHeight = (height / maxHeight) * chartHeight;
+                bar.style.width = barWidth + 'px';
+                bar.style.height = barHeight + 'px';
+                bar.style.left = (20 + index * (barWidth + 5)) + 'px';
+                
+                // Add height label
+                const label = document.createElement('div');
+                label.textContent = height;
+                label.style.position = 'absolute';
+                label.style.top = '-25px';
+                label.style.width = '100%';
+                label.style.textAlign = 'center';
+                label.style.fontSize = '12px';
+                label.style.fontWeight = 'bold';
+                bar.appendChild(label);
+                
+                container.appendChild(bar);
+            });
+            
+            // Draw water area if there are selected bars
+            if (left < right) {
+                const waterHeight = Math.min(heights[left], heights[right]);
+                const waterWidth = (right - left) * (barWidth + 5) - 5;
+                const waterArea = document.createElement('div');
+                waterArea.className = 'water-area';
+                waterArea.style.width = waterWidth + 'px';
+                waterArea.style.height = (waterHeight / maxHeight) * chartHeight + 'px';
+                waterArea.style.left = (20 + left * (barWidth + 5)) + 'px';
+                container.appendChild(waterArea);
+            }
+        }
+        
+        function updateInfo() {
+            document.getElementById('leftPointer').textContent = left;
+            document.getElementById('rightPointer').textContent = right;
+            
+            const currentWater = left < right ? 
+                Math.min(heights[left], heights[right]) * (right - left) : 0;
+            document.getElementById('currentArea').textContent = currentWater;
+            document.getElementById('maxArea').textContent = maxWater;
+            
+            let description = '';
+            if (step === 0) {
+                description = 'Ready to start. Two pointers at the ends of the array.';
+            } else if (left >= right) {
+                description = 'Algorithm complete! Maximum water area found: ' + maxWater;
+            } else {
+                description = `Step ${step}: Left=${left}(h=${heights[left]}), Right=${right}(h=${heights[right]}). ` +
+                    `Width=${right-left}, Water=${currentWater}. ` +
+                    `Moving ${heights[left] < heights[right] ? 'left' : 'right'} pointer (smaller height).`;
+            }
+            document.getElementById('stepDescription').textContent = description;
+        }
+        
+        function nextStep() {
+            if (left >= right) return;
+            
+            const width = right - left;
+            const currentWater = Math.min(heights[left], heights[right]) * width;
+            maxWater = Math.max(maxWater, currentWater);
+            
+            if (heights[left] < heights[right]) {
+                left++;
+            } else {
+                right--;
+            }
+            
+            step++;
+            drawChart();
+            updateInfo();
+            
+            document.getElementById('prevBtn').disabled = false;
+            if (left >= right) {
+                document.getElementById('nextBtn').disabled = true;
+            }
+        }
+        
+        function prevStep() {
+            if (step <= 0) return;
+            
+            // This is a simplified previous step - in a real implementation,
+            // you'd need to store the full state history
+            alert('Previous step not fully implemented in this demo');
+        }
+        
+        function reset() {
+            left = 0;
+            right = heights.length - 1;
+            maxWater = 0;
+            step = 0;
+            isRunning = false;
+            
+            drawChart();
+            updateInfo();
+            
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('prevBtn').disabled = true;
+            document.getElementById('autoBtn').textContent = 'Auto Solve';
+        }
+        
+        async function autoSolve() {
+            if (isRunning) {
+                isRunning = false;
+                document.getElementById('autoBtn').textContent = 'Auto Solve';
+                return;
+            }
+            
+            isRunning = true;
+            document.getElementById('autoBtn').textContent = 'Stop';
+            
+            while (left < right && isRunning) {
+                nextStep();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            isRunning = false;
+            document.getElementById('autoBtn').textContent = 'Auto Solve';
+        }
+        
+        // Initialize
+        drawChart();
+        updateInfo();
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            setTimeout(drawChart, 100);
+        });
+    </script>
+</body>
+</html>
